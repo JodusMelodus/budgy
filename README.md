@@ -2,6 +2,11 @@
 
 An empowering tool which allows you to view your budget.
 
+[![CI](https://github.com/JodusMelodus/budgy/actions/workflows/rust.yml/badge.svg)](https://github.com/JodusMelodus/budgy/actions/workflows/rust.yml)
+[![Github Pages](https://github.com/JodusMelodus/budgy/actions/workflows/pages.yml/badge.svg?branch=master)](https://github.com/JodusMelodus/budgy/actions/workflows/pages.yml)
+[![pages-build-deployment](https://github.com/JodusMelodus/budgy/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/JodusMelodus/budgy/actions/workflows/pages/pages-build-deployment)
+[![Spell Check](https://github.com/JodusMelodus/budgy/actions/workflows/typos.yml/badge.svg)](https://github.com/JodusMelodus/budgy/actions/workflows/typos.yml)
+
 ## Features
 
 - **Budget persistence** - Your budget is stored locally in the browser, and you can import an existing one from the `Settings` tab.
