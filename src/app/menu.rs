@@ -62,6 +62,7 @@ impl Budgy {
         });
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn open_web_app() {
         if let Err(e) = webbrowser::open("https://jodusmelodus.github.io/budgy/") {
             log::error!("Failed to open web link: {e}");

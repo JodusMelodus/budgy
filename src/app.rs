@@ -5,7 +5,9 @@ mod ui;
 
 use std::sync::mpsc::{Receiver, Sender, channel};
 
-use egui::{Key, KeyboardShortcut, Modifiers, Theme, ViewportCommand, vec2};
+#[cfg(not(target_arch = "wasm32"))]
+use egui::ViewportCommand;
+use egui::{Key, KeyboardShortcut, Modifiers, Theme, vec2};
 use polars::{error::PolarsError, frame::DataFrame, lazy::frame::LazyFrame};
 use thiserror::Error;
 
@@ -18,6 +20,7 @@ use crate::{
 };
 
 const CTRL_E: KeyboardShortcut = KeyboardShortcut::new(Modifiers::CTRL, Key::E);
+#[cfg(not(target_arch = "wasm32"))]
 const ALT_F4: KeyboardShortcut = KeyboardShortcut::new(Modifiers::ALT, Key::F4);
 
 #[derive(Debug, Error)]
@@ -164,10 +167,13 @@ impl eframe::App for Budgy {
                             self.export_csv();
                         }
 
-                        ui.separator();
+                        #[cfg(not(target_arch = "wasm32"))]
+                        {
+                            ui.separator();
 
-                        if ui.button_with_shortcut("Exit", ALT_F4) {
-                            ui.send_viewport_cmd(ViewportCommand::Close);
+                            if ui.button_with_shortcut("Exit", ALT_F4) {
+                                ui.send_viewport_cmd(ViewportCommand::Close);
+                            }
                         }
                     });
 
@@ -175,6 +181,7 @@ impl eframe::App for Budgy {
                         ui.set_width(180.0);
                         ui.spacing_mut().button_padding = vec2(8.0, 4.0);
 
+                        #[cfg(not(target_arch = "wasm32"))]
                         if ui.button("Open WebApp").clicked() {
                             Self::open_web_app();
                         }
