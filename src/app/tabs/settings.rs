@@ -3,6 +3,7 @@ use egui::{Align, Layout, Theme, vec2};
 use crate::app::{Budgy, BudgyError, file::BudgyFileType};
 
 impl Budgy {
+    #[expect(clippy::unnecessary_wraps)]
     pub fn display_settings(&mut self, ui: &mut egui::Ui) -> Result<(), BudgyError> {
         ui.spacing_mut().button_padding = vec2(18.0, 6.0);
 

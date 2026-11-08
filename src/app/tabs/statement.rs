@@ -3,6 +3,7 @@ use polars::datatypes::AnyValue;
 use crate::app::{Budgy, BudgyError, BudgyFileType};
 
 impl Budgy {
+    #[expect(clippy::unnecessary_wraps)]
     pub fn display_statement_tab(&mut self, ui: &mut egui::Ui) -> Result<(), BudgyError> {
         ui.heading("Statement");
         ui.separator();
