@@ -3,12 +3,9 @@ mod menu;
 mod tabs;
 mod ui;
 
-use std::sync::mpsc::{Receiver, Sender, channel};
-
-#[cfg(not(target_arch = "wasm32"))]
-use egui::ViewportCommand;
 use egui::{Key, KeyboardShortcut, Modifiers, Theme, vec2};
 use polars::{error::PolarsError, frame::DataFrame, lazy::frame::LazyFrame};
+use std::sync::mpsc::{Receiver, Sender, channel};
 use thiserror::Error;
 
 use crate::{
@@ -132,16 +129,21 @@ impl eframe::App for Budgy {
         while let Ok(file) = self.rx.try_recv() {
             match file.file_type {
                 BudgyFileType::Budget => {
+                    self.budget_df = None;
                     self.budget_lf = import_budget(file.bytes)
                         .map_err(|e| self.last_error = Some(e.to_string()))
                         .ok();
+                    self.budget.categories = Vec::new();
+                    self.budget.amounts = Vec::new();
                 }
                 BudgyFileType::Statement => {
+                    self.statement_df = None;
                     self.statement_lf = import_statement(file.bytes)
                         .map_err(|e| self.last_error = Some(e.to_string()))
                         .ok();
                 }
                 BudgyFileType::Summary => {
+                    self.statement_df = None;
                     self.previous_summary_lf = import_summary(file.bytes)
                         .map_err(|e| self.last_error = Some(e.to_string()))
                         .ok();
@@ -172,7 +174,7 @@ impl eframe::App for Budgy {
                             ui.separator();
 
                             if ui.button_with_shortcut("Exit", ALT_F4) {
-                                ui.send_viewport_cmd(ViewportCommand::Close);
+                                ui.send_viewport_cmd(egui::ViewportCommand::Close);
                             }
                         }
                     });
