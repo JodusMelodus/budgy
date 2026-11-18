@@ -9,7 +9,7 @@ impl Budgy {
             Self::display_dataframe(ui, df);
         } else if let Some(lf) = self.statement_lf.clone() {
             self.statement_df = Some(lf.collect()?);
-        } else if ui.button("Import statement").clicked() {
+        } else if ui.button("Import Statement").clicked() {
             self.open_csv_file(BudgyFileType::Statement);
         }
 
