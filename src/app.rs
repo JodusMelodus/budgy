@@ -25,7 +25,7 @@ pub enum BudgyError {
     #[error("Polars failed")]
     Polars(#[from] PolarsError),
     #[error("No DataFrame/LazyFrame")]
-    Frame(String),
+    MissingFrame(String),
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Default)]
@@ -209,7 +209,7 @@ impl eframe::App for Budgy {
             } {
                 match e {
                     BudgyError::Polars(e) => log::error!("Polars Error: {e}"),
-                    BudgyError::Frame(e) => log::error!("Missing Frame: {e}"),
+                    BudgyError::MissingFrame(e) => log::error!("Missing Frame: {e}"),
                 }
             }
         });

@@ -11,17 +11,17 @@ impl Budgy {
             let mut summary = self
                 .previous_summary_lf
                 .clone()
-                .ok_or_else(|| BudgyError::Frame("Missing previous summary".to_owned()))?;
+                .ok_or_else(|| BudgyError::MissingFrame("Previous summary".to_owned()))?;
 
             let statement = self
                 .statement_lf
                 .clone()
-                .ok_or_else(|| BudgyError::Frame("Missing statement".to_owned()))?;
+                .ok_or_else(|| BudgyError::MissingFrame("Statement".to_owned()))?;
 
             let budget = self
                 .budget_lf
                 .clone()
-                .ok_or_else(|| BudgyError::Frame("Missing budget".to_owned()))?;
+                .ok_or_else(|| BudgyError::MissingFrame("Budget".to_owned()))?;
 
             summary = summary.rename(["Balance"], ["Previous Balance"], true);
             let mut result = summary.left_join(statement, col("Category"), col("Category"));
