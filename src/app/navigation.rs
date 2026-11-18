@@ -2,6 +2,30 @@ use egui::{Align, Layout, vec2};
 
 use crate::app::{Budgy, tabs::Tabs};
 
+trait NavigationUi {
+    fn navigation_option<'a>(
+        &mut self,
+        icon: impl egui::IntoAtoms<'a>,
+        on_hover_text: impl Into<egui::WidgetText>,
+        selected: bool,
+    ) -> egui::Response;
+}
+
+impl NavigationUi for egui::Ui {
+    fn navigation_option<'a>(
+        &mut self,
+        icon: impl egui::IntoAtoms<'a>,
+        on_hover_text: impl Into<egui::WidgetText>,
+        selected: bool,
+    ) -> egui::Response {
+        self.add_sized(
+            egui::vec2(self.available_width(), 30.0),
+            egui::Button::new(icon).selected(selected),
+        )
+        .on_hover_text(on_hover_text)
+    }
+}
+
 impl Budgy {
     pub fn navigation(&mut self, ui: &mut egui::Ui) {
         egui::Panel::left("navigation")
@@ -38,78 +62,72 @@ impl Budgy {
                 }
             });
 
-            let size = egui::vec2(ui.available_width(), 30.0);
             if ui
-                .add_sized(
-                    size,
-                    egui::Button::new(if self.nav_collapsed {
+                .navigation_option(
+                    if self.nav_collapsed {
                         "🏠"
                     } else {
                         "Dashboard"
-                    })
-                    .selected(self.current_tab == Tabs::Dashboard),
+                    },
+                    "Dashboard",
+                    self.current_tab == Tabs::Dashboard,
                 )
-                .on_hover_text("Dashboard")
                 .clicked()
             {
                 self.current_tab = Tabs::Dashboard;
             }
 
             if ui
-                .add_sized(
-                    size,
-                    egui::Button::new(if self.nav_collapsed {
+                .navigation_option(
+                    if self.nav_collapsed {
                         "📄"
                     } else {
                         "Statement"
-                    })
-                    .selected(self.current_tab == Tabs::Statement),
+                    },
+                    "Statement",
+                    self.current_tab == Tabs::Statement,
                 )
-                .on_hover_text("Statement")
                 .clicked()
             {
                 self.current_tab = Tabs::Statement;
             }
 
             if ui
-                .add_sized(
-                    size,
-                    egui::Button::new(if self.nav_collapsed { "💳" } else { "Budget" })
-                        .selected(self.current_tab == Tabs::Budget),
+                .navigation_option(
+                    if self.nav_collapsed { "💳" } else { "Budget" },
+                    "Budget",
+                    self.current_tab == Tabs::Budget,
                 )
-                .on_hover_text("Budget")
                 .clicked()
             {
                 self.current_tab = Tabs::Budget;
             }
 
             if ui
-                .add_sized(
-                    size,
-                    egui::Button::new(if self.nav_collapsed {
+                .navigation_option(
+                    if self.nav_collapsed {
                         "📨"
                     } else {
                         "Summary"
-                    })
-                    .selected(self.current_tab == Tabs::BudgetSummary),
+                    },
+                    "Summary",
+                    self.current_tab == Tabs::BudgetSummary,
                 )
-                .on_hover_text("Summary")
                 .clicked()
             {
                 self.current_tab = Tabs::BudgetSummary;
             }
 
             if ui
-                .add_sized(
-                    size,
-                    egui::Button::new(if self.nav_collapsed {
+                .navigation_option(
+                    if self.nav_collapsed {
                         "⚙️"
                     } else {
                         "Settings"
-                    })
-                    .selected(self.current_tab == Tabs::Settings),
+                    },
+                    "Settings",
+                    self.current_tab == Tabs::Settings,
                 )
-                .on_hover_text("Settings")
                 .clicked()
             {
                 self.current_tab = Tabs::Settings;
