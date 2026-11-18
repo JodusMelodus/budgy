@@ -1,6 +1,9 @@
 use polars::{chunked_array::ops::SortMultipleOptions, lazy::dsl::col};
 
-use crate::app::{Budgy, BudgyError};
+use crate::{
+    app::{Budgy, BudgyError},
+    extra_ui::DataFrameUi as _,
+};
 
 impl Budgy {
     pub fn display_budget_summary_tab(&mut self, ui: &mut egui::Ui) -> Result<(), BudgyError> {
@@ -47,7 +50,7 @@ impl Budgy {
             return Ok(());
         };
 
-        Self::display_dataframe(ui, df);
+        ui.display_dataframe(df);
         Ok(())
     }
 }

@@ -1,22 +1,16 @@
-mod file;
-mod menu;
-mod navigation;
-mod tabs;
-mod ui;
-
 use egui::{Key, KeyboardShortcut, Modifiers, Theme, vec2};
 use polars::{error::PolarsError, frame::DataFrame, lazy::frame::LazyFrame};
 use std::sync::mpsc::{Receiver, Sender, channel};
 use thiserror::Error;
 
-use crate::app::{
+use crate::{
     file::{BudgyFileType, ImportFile, import_budget, import_statement, import_summary},
     tabs::Tabs,
 };
 
-const CTRL_E: KeyboardShortcut = KeyboardShortcut::new(Modifiers::CTRL, Key::E);
+pub const CTRL_E: KeyboardShortcut = KeyboardShortcut::new(Modifiers::CTRL, Key::E);
 #[cfg(not(target_arch = "wasm32"))]
-const ALT_F4: KeyboardShortcut = KeyboardShortcut::new(Modifiers::ALT, Key::F4);
+pub const ALT_F4: KeyboardShortcut = KeyboardShortcut::new(Modifiers::ALT, Key::F4);
 
 #[derive(Debug, Error)]
 pub enum BudgyError {
@@ -33,27 +27,27 @@ pub struct Budget {
 }
 
 pub struct Budgy {
-    budget_summary: Option<DataFrame>,
+    pub(crate) budget_summary: Option<DataFrame>,
 
-    budget_df: Option<DataFrame>,
-    budget_lf: Option<LazyFrame>,
+    pub(crate) budget_df: Option<DataFrame>,
+    pub(crate) budget_lf: Option<LazyFrame>,
 
-    statement_df: Option<DataFrame>,
-    statement_lf: Option<LazyFrame>,
+    pub(crate) statement_df: Option<DataFrame>,
+    pub(crate) statement_lf: Option<LazyFrame>,
 
-    previous_summary_lf: Option<LazyFrame>,
+    pub(crate) previous_summary_lf: Option<LazyFrame>,
 
-    current_tab: Tabs,
+    pub(crate) current_tab: Tabs,
 
     // File picking
-    tx: Sender<ImportFile>,
+    pub(crate) tx: Sender<ImportFile>,
     rx: Receiver<ImportFile>,
 
     budget: Budget,
     last_error: Option<String>,
 
-    nav_collapsed: bool,
-    theme: Theme,
+    pub(crate) nav_collapsed: bool,
+    pub(crate) theme: Theme,
 }
 
 impl Budgy {

@@ -114,7 +114,7 @@ impl Budgy {
             };
 
             let bytes = file.read().await;
-            if let Err(e) = tx.send(super::ImportFile { file_type, bytes }) {
+            if let Err(e) = tx.send(ImportFile { file_type, bytes }) {
                 log::error!("Failed to send loaded file data: {e}");
             }
         });

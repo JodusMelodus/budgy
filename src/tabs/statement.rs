@@ -1,4 +1,8 @@
-use crate::app::{Budgy, BudgyError, BudgyFileType};
+use crate::{
+    app::{Budgy, BudgyError},
+    extra_ui::DataFrameUi as _,
+    file::BudgyFileType,
+};
 
 impl Budgy {
     pub fn display_statement_tab(&mut self, ui: &mut egui::Ui) -> Result<(), BudgyError> {
@@ -6,7 +10,7 @@ impl Budgy {
         ui.separator();
 
         if let Some(df) = &self.statement_df {
-            Self::display_dataframe(ui, df);
+            ui.display_dataframe(df);
         } else if let Some(lf) = self.statement_lf.clone() {
             self.statement_df = Some(lf.collect()?);
         } else if ui.button("Import Statement").clicked() {

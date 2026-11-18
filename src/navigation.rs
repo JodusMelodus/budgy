@@ -1,6 +1,6 @@
 use egui::{Align, Layout, vec2};
 
-use crate::app::{Budgy, tabs::Tabs};
+use crate::{app::Budgy, tabs::Tabs};
 
 trait NavigationUi {
     fn navigation_option<'a>(

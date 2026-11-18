@@ -1,4 +1,8 @@
-use crate::app::{Budgy, BudgyError, file::BudgyFileType};
+use crate::{
+    app::{Budgy, BudgyError},
+    extra_ui::DataFrameUi as _,
+    file::BudgyFileType,
+};
 
 impl Budgy {
     pub fn display_budget_tab(&mut self, ui: &mut egui::Ui) -> Result<(), BudgyError> {
@@ -6,7 +10,7 @@ impl Budgy {
         ui.separator();
 
         if let Some(df) = &self.budget_df {
-            Self::display_dataframe(ui, df);
+            ui.display_dataframe(df);
         } else if let Some(lf) = self.budget_lf.clone() {
             self.budget_df = Some(lf.collect()?);
         } else if ui.button("Import Budget").clicked() {

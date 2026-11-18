@@ -1,11 +1,9 @@
-use egui::vec2;
-
 use crate::app::Budgy;
 
 impl Budgy {
     pub fn help_menu(ui: &mut egui::Ui) {
         ui.set_width(180.0);
-        ui.spacing_mut().button_padding = vec2(8.0, 4.0);
+        ui.spacing_mut().button_padding = egui::vec2(8.0, 4.0);
 
         #[cfg(not(target_arch = "wasm32"))]
         if ui.button("Open WebApp").clicked() {
