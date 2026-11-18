@@ -1,5 +1,6 @@
 mod file;
 mod menu;
+mod navigation;
 mod tabs;
 mod ui;
 
@@ -8,12 +9,9 @@ use polars::{error::PolarsError, frame::DataFrame, lazy::frame::LazyFrame};
 use std::sync::mpsc::{Receiver, Sender, channel};
 use thiserror::Error;
 
-use crate::{
-    app::{
-        file::{BudgyFileType, ImportFile, import_budget, import_statement, import_summary},
-        tabs::Tabs,
-    },
-    extra_ui::ExtraUi as _,
+use crate::app::{
+    file::{BudgyFileType, ImportFile, import_budget, import_statement, import_summary},
+    tabs::Tabs,
 };
 
 const CTRL_E: KeyboardShortcut = KeyboardShortcut::new(Modifiers::CTRL, Key::E);
@@ -151,55 +149,13 @@ impl eframe::App for Budgy {
             }
         }
 
-        egui::Panel::top("Menu")
-            .show_separator_line(false)
-            .show(ui, |ui| {
-                egui::MenuBar::new().ui(ui, |ui| {
-                    ui.spacing_mut().button_padding = vec2(8.0, 4.0);
+        self.menu(ui);
 
-                    ui.menu_button("File", |ui| {
-                        ui.set_width(180.0);
-                        ui.spacing_mut().button_padding = vec2(8.0, 4.0);
-
-                        if ui.button("Load previous summary").clicked() {
-                            self.open_csv_file(BudgyFileType::Summary);
-                        }
-
-                        if ui.button_with_shortcut("Export Summary", CTRL_E) {
-                            self.export_csv();
-                        }
-
-                        #[cfg(not(target_arch = "wasm32"))]
-                        {
-                            ui.separator();
-
-                            if ui.button_with_shortcut("Exit", ALT_F4) {
-                                ui.send_viewport_cmd(egui::ViewportCommand::Close);
-                            }
-                        }
-                    });
-
-                    ui.menu_button("Help", |ui| {
-                        ui.set_width(180.0);
-                        ui.spacing_mut().button_padding = vec2(8.0, 4.0);
-
-                        #[cfg(not(target_arch = "wasm32"))]
-                        if ui.button("Open WebApp").clicked() {
-                            Self::open_web_app();
-                        }
-                    });
-                });
-            });
-
-        egui::Panel::left("navigation")
-            .exact_size(if self.nav_collapsed { 70.0 } else { 180.0 })
-            .show_separator_line(false)
-            .resizable(false)
-            .show(ui, |ui| {
-                self.display_navigation_menu(ui);
-            });
+        self.navigation(ui);
 
         egui::CentralPanel::default().show(ui, |ui| {
+            ui.spacing_mut().button_padding = vec2(8.0, 4.0);
+
             if let Err(e) = match self.current_tab {
                 Tabs::Statement => self.display_statement_tab(ui),
                 Tabs::BudgetSummary => self.display_budget_summary_tab(ui),
