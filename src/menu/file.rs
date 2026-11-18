@@ -1,6 +1,6 @@
 use crate::{
     app::{Budgy, CTRL_E},
-    extra_ui::ExtraUi as _,
+    extra_ui::ShortcutUi as _,
     file::BudgyFileType,
 };
 

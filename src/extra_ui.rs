@@ -1,6 +1,6 @@
 use egui::{KeyboardShortcut, Ui};
 
-pub trait ExtraUi {
+pub trait ShortcutUi {
     fn button_with_shortcut(
         &mut self,
         text: impl Into<egui::WidgetText>,
@@ -8,7 +8,7 @@ pub trait ExtraUi {
     ) -> bool;
 }
 
-impl ExtraUi for Ui {
+impl ShortcutUi for Ui {
     fn button_with_shortcut(
         &mut self,
         text: impl Into<egui::WidgetText>,
