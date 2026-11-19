@@ -1,5 +1,6 @@
-use egui::{Align, Key, KeyboardShortcut, Layout, Modifiers, Theme, vec2};
+use egui::{Key, KeyboardShortcut, Modifiers, Theme, vec2};
 use polars::{error::PolarsError, frame::DataFrame, lazy::frame::LazyFrame};
+use rfd::{MessageButtons, MessageDialogResult, MessageLevel};
 use std::sync::mpsc::{Receiver, Sender, channel};
 use thiserror::Error;
 
@@ -166,21 +167,17 @@ impl eframe::App for Budgy {
             }
         });
 
-        if let Some(error) = self.error.clone() {
-            egui::Modal::new("Error".into()).show(ui.ctx(), |ui| {
-                ui.spacing_mut().button_padding = vec2(8.0, 4.0);
-
-                ui.heading("Error");
-                ui.separator();
-                ui.label(&error);
-                log::error!("Error: {error}");
-
-                ui.with_layout(Layout::right_to_left(Align::Min), |ui| {
-                    if ui.button("Ok").clicked() {
-                        self.error = None;
-                    }
-                });
-            });
+        if let Some(error) = self.error.clone()
+            && rfd::MessageDialog::new()
+                .set_title("Error")
+                .set_description(&error)
+                .set_buttons(MessageButtons::Ok)
+                .set_level(MessageLevel::Error)
+                .show()
+                == MessageDialogResult::Ok
+        {
+            self.error = None;
+            log::error!("{error}");
         }
     }
 }
