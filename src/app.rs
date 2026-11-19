@@ -1,31 +1,24 @@
-mod file;
-mod menu;
-mod tabs;
-mod ui;
-
 use egui::{Key, KeyboardShortcut, Modifiers, Theme, vec2};
 use polars::{error::PolarsError, frame::DataFrame, lazy::frame::LazyFrame};
+use rfd::{MessageButtons, MessageDialogResult, MessageLevel};
 use std::sync::mpsc::{Receiver, Sender, channel};
 use thiserror::Error;
 
 use crate::{
-    app::{
-        file::{BudgyFileType, ImportFile, import_budget, import_statement, import_summary},
-        tabs::Tabs,
-    },
-    extra_ui::ExtraUi as _,
+    file::{BudgyFileType, ImportFile, import_budget, import_statement, import_summary},
+    tabs::Tabs,
 };
 
-const CTRL_E: KeyboardShortcut = KeyboardShortcut::new(Modifiers::CTRL, Key::E);
+pub const CTRL_E: KeyboardShortcut = KeyboardShortcut::new(Modifiers::CTRL, Key::E);
 #[cfg(not(target_arch = "wasm32"))]
-const ALT_F4: KeyboardShortcut = KeyboardShortcut::new(Modifiers::ALT, Key::F4);
+pub const ALT_F4: KeyboardShortcut = KeyboardShortcut::new(Modifiers::ALT, Key::F4);
 
 #[derive(Debug, Error)]
 pub enum BudgyError {
     #[error("Polars failed")]
     Polars(#[from] PolarsError),
     #[error("No DataFrame/LazyFrame")]
-    Frame(String),
+    MissingFrame(String),
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Default)]
@@ -35,27 +28,27 @@ pub struct Budget {
 }
 
 pub struct Budgy {
-    budget_summary: Option<DataFrame>,
+    pub(crate) budget_summary: Option<DataFrame>,
 
-    budget_df: Option<DataFrame>,
-    budget_lf: Option<LazyFrame>,
+    pub(crate) budget_df: Option<DataFrame>,
+    pub(crate) budget_lf: Option<LazyFrame>,
 
-    statement_df: Option<DataFrame>,
-    statement_lf: Option<LazyFrame>,
+    pub(crate) statement_df: Option<DataFrame>,
+    pub(crate) statement_lf: Option<LazyFrame>,
 
-    previous_summary_lf: Option<LazyFrame>,
+    pub(crate) previous_summary_lf: Option<LazyFrame>,
 
-    current_tab: Tabs,
+    pub(crate) current_tab: Tabs,
 
     // File picking
-    tx: Sender<ImportFile>,
+    pub(crate) tx: Sender<ImportFile>,
     rx: Receiver<ImportFile>,
 
     budget: Budget,
-    last_error: Option<String>,
+    error: Option<String>,
 
-    nav_collapsed: bool,
-    theme: Theme,
+    pub(crate) nav_collapsed: bool,
+    pub(crate) theme: Theme,
 }
 
 impl Budgy {
@@ -84,7 +77,7 @@ impl Budgy {
             rx,
 
             budget,
-            last_error: None,
+            error: None,
 
             nav_collapsed: false,
             theme: cc.egui_ctx.system_theme().unwrap_or(Theme::Dark),
@@ -123,7 +116,9 @@ impl eframe::App for Budgy {
         ui.ctx().set_theme(self.theme);
 
         if ui.ctx().input_mut(|i| i.consume_shortcut(&CTRL_E)) {
-            self.export_csv();
+            self.export_csv()
+                .map_err(|e| self.error = Some(e.to_string()))
+                .ok();
         }
 
         while let Ok(file) = self.rx.try_recv() {
@@ -131,7 +126,7 @@ impl eframe::App for Budgy {
                 BudgyFileType::Budget => {
                     self.budget_df = None;
                     self.budget_lf = import_budget(file.bytes)
-                        .map_err(|e| self.last_error = Some(e.to_string()))
+                        .map_err(|e| self.error = Some(e.to_string()))
                         .ok();
                     self.budget.categories = Vec::new();
                     self.budget.amounts = Vec::new();
@@ -139,67 +134,25 @@ impl eframe::App for Budgy {
                 BudgyFileType::Statement => {
                     self.statement_df = None;
                     self.statement_lf = import_statement(file.bytes)
-                        .map_err(|e| self.last_error = Some(e.to_string()))
+                        .map_err(|e| self.error = Some(e.to_string()))
                         .ok();
                 }
                 BudgyFileType::Summary => {
                     self.statement_df = None;
                     self.previous_summary_lf = import_summary(file.bytes)
-                        .map_err(|e| self.last_error = Some(e.to_string()))
+                        .map_err(|e| self.error = Some(e.to_string()))
                         .ok();
                 }
             }
         }
 
-        egui::Panel::top("Menu")
-            .show_separator_line(false)
-            .show(ui, |ui| {
-                egui::MenuBar::new().ui(ui, |ui| {
-                    ui.spacing_mut().button_padding = vec2(8.0, 4.0);
+        self.menu(ui);
 
-                    ui.menu_button("File", |ui| {
-                        ui.set_width(180.0);
-                        ui.spacing_mut().button_padding = vec2(8.0, 4.0);
-
-                        if ui.button("Load previous summary").clicked() {
-                            self.open_csv_file(BudgyFileType::Summary);
-                        }
-
-                        if ui.button_with_shortcut("Export Summary", CTRL_E) {
-                            self.export_csv();
-                        }
-
-                        #[cfg(not(target_arch = "wasm32"))]
-                        {
-                            ui.separator();
-
-                            if ui.button_with_shortcut("Exit", ALT_F4) {
-                                ui.send_viewport_cmd(egui::ViewportCommand::Close);
-                            }
-                        }
-                    });
-
-                    ui.menu_button("Help", |ui| {
-                        ui.set_width(180.0);
-                        ui.spacing_mut().button_padding = vec2(8.0, 4.0);
-
-                        #[cfg(not(target_arch = "wasm32"))]
-                        if ui.button("Open WebApp").clicked() {
-                            Self::open_web_app();
-                        }
-                    });
-                });
-            });
-
-        egui::Panel::left("navigation")
-            .exact_size(if self.nav_collapsed { 70.0 } else { 180.0 })
-            .show_separator_line(false)
-            .resizable(false)
-            .show(ui, |ui| {
-                self.display_navigation_menu(ui);
-            });
+        self.navigation(ui);
 
         egui::CentralPanel::default().show(ui, |ui| {
+            ui.spacing_mut().button_padding = vec2(8.0, 4.0);
+
             if let Err(e) = match self.current_tab {
                 Tabs::Statement => self.display_statement_tab(ui),
                 Tabs::BudgetSummary => self.display_budget_summary_tab(ui),
@@ -208,10 +161,23 @@ impl eframe::App for Budgy {
                 Tabs::Settings => self.display_settings(ui),
             } {
                 match e {
-                    BudgyError::Polars(e) => log::error!("Polars Error: {e}"),
-                    BudgyError::Frame(e) => log::error!("Missing Frame: {e}"),
+                    BudgyError::Polars(e) => self.error = Some(format!("Polars Error: {e}")),
+                    BudgyError::MissingFrame(e) => self.error = Some(format!("Missing Frame: {e}")),
                 }
             }
         });
+
+        if let Some(error) = self.error.clone()
+            && rfd::MessageDialog::new()
+                .set_title("Error")
+                .set_description(&error)
+                .set_buttons(MessageButtons::Ok)
+                .set_level(MessageLevel::Error)
+                .show()
+                == MessageDialogResult::Ok
+        {
+            self.error = None;
+            log::error!("{error}");
+        }
     }
 }

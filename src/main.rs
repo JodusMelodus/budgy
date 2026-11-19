@@ -3,6 +3,10 @@
 
 mod app;
 mod extra_ui;
+mod file;
+mod menu;
+mod navigation;
+mod tabs;
 
 // When compiling natively:
 #[cfg(not(target_arch = "wasm32"))]

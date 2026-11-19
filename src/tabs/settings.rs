@@ -1,6 +1,6 @@
 use egui::{Align, Layout, Theme, vec2};
 
-use crate::app::{Budgy, BudgyError, file::BudgyFileType};
+use crate::app::{Budgy, BudgyError};
 
 impl Budgy {
     #[expect(clippy::unnecessary_wraps)]
@@ -22,20 +22,6 @@ impl Budgy {
                 ui.vertical(|ui| {
                     ui.heading("Theme");
                     ui.label("Select your preferred theme");
-                });
-            });
-        });
-
-        ui.separator();
-
-        ui.horizontal(|ui| {
-            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                if ui.button("Import").clicked() {
-                    self.open_csv_file(BudgyFileType::Budget);
-                }
-                ui.vertical(|ui| {
-                    ui.heading("Import Budget");
-                    ui.label("Import your existing budget from a .csv file");
                 });
             });
         });
