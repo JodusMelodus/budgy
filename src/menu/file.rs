@@ -1,11 +1,11 @@
 use crate::{
-    app::{Budgy, CTRL_E},
+    app::{Budgy, BudgyError, CTRL_E},
     extra_ui::ShortcutUi as _,
     file::BudgyFileType,
 };
 
 impl Budgy {
-    pub fn file_menu(&self, ui: &mut egui::Ui) {
+    pub fn file_menu(&self, ui: &mut egui::Ui) -> Result<(), BudgyError> {
         ui.set_width(180.0);
         ui.spacing_mut().button_padding = egui::vec2(8.0, 4.0);
 
@@ -14,7 +14,7 @@ impl Budgy {
         }
 
         if ui.button_with_shortcut("Export Summary", CTRL_E) {
-            self.export_csv();
+            self.export_csv()?;
         }
 
         #[cfg(not(target_arch = "wasm32"))]
@@ -27,5 +27,7 @@ impl Budgy {
                 ui.send_viewport_cmd(egui::ViewportCommand::Close);
             }
         }
+
+        Ok(())
     }
 }

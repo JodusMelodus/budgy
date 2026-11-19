@@ -1,4 +1,4 @@
-use egui::{Key, KeyboardShortcut, Modifiers, Theme, vec2};
+use egui::{Align, Key, KeyboardShortcut, Layout, Modifiers, Theme, vec2};
 use polars::{error::PolarsError, frame::DataFrame, lazy::frame::LazyFrame};
 use std::sync::mpsc::{Receiver, Sender, channel};
 use thiserror::Error;
@@ -44,7 +44,7 @@ pub struct Budgy {
     rx: Receiver<ImportFile>,
 
     budget: Budget,
-    last_error: Option<String>,
+    error: Option<String>,
 
     pub(crate) nav_collapsed: bool,
     pub(crate) theme: Theme,
@@ -76,7 +76,7 @@ impl Budgy {
             rx,
 
             budget,
-            last_error: None,
+            error: None,
 
             nav_collapsed: false,
             theme: cc.egui_ctx.system_theme().unwrap_or(Theme::Dark),
@@ -115,7 +115,9 @@ impl eframe::App for Budgy {
         ui.ctx().set_theme(self.theme);
 
         if ui.ctx().input_mut(|i| i.consume_shortcut(&CTRL_E)) {
-            self.export_csv();
+            self.export_csv()
+                .map_err(|e| self.error = Some(e.to_string()))
+                .ok();
         }
 
         while let Ok(file) = self.rx.try_recv() {
@@ -123,7 +125,7 @@ impl eframe::App for Budgy {
                 BudgyFileType::Budget => {
                     self.budget_df = None;
                     self.budget_lf = import_budget(file.bytes)
-                        .map_err(|e| self.last_error = Some(e.to_string()))
+                        .map_err(|e| self.error = Some(e.to_string()))
                         .ok();
                     self.budget.categories = Vec::new();
                     self.budget.amounts = Vec::new();
@@ -131,13 +133,13 @@ impl eframe::App for Budgy {
                 BudgyFileType::Statement => {
                     self.statement_df = None;
                     self.statement_lf = import_statement(file.bytes)
-                        .map_err(|e| self.last_error = Some(e.to_string()))
+                        .map_err(|e| self.error = Some(e.to_string()))
                         .ok();
                 }
                 BudgyFileType::Summary => {
                     self.statement_df = None;
                     self.previous_summary_lf = import_summary(file.bytes)
-                        .map_err(|e| self.last_error = Some(e.to_string()))
+                        .map_err(|e| self.error = Some(e.to_string()))
                         .ok();
                 }
             }
@@ -158,10 +160,27 @@ impl eframe::App for Budgy {
                 Tabs::Settings => self.display_settings(ui),
             } {
                 match e {
-                    BudgyError::Polars(e) => log::error!("Polars Error: {e}"),
-                    BudgyError::MissingFrame(e) => log::error!("Missing Frame: {e}"),
+                    BudgyError::Polars(e) => self.error = Some(format!("Polars Error: {e}")),
+                    BudgyError::MissingFrame(e) => self.error = Some(format!("Missing Frame: {e}")),
                 }
             }
         });
+
+        if let Some(error) = self.error.clone() {
+            egui::Modal::new("Error".into()).show(ui.ctx(), |ui| {
+                ui.spacing_mut().button_padding = vec2(8.0, 4.0);
+
+                ui.heading("Error");
+                ui.separator();
+                ui.label(&error);
+                log::error!("Error: {error}");
+
+                ui.with_layout(Layout::right_to_left(Align::Min), |ui| {
+                    if ui.button("Ok").clicked() {
+                        self.error = None;
+                    }
+                });
+            });
+        }
     }
 }

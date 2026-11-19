@@ -12,7 +12,9 @@ impl Budgy {
                     ui.spacing_mut().button_padding = egui::vec2(8.0, 4.0);
 
                     ui.menu_button("File", |ui| {
-                        self.file_menu(ui);
+                        if let Err(e) = self.file_menu(ui) {
+                            log::error!("{e}");
+                        }
                     });
 
                     ui.menu_button("Help", |ui| {

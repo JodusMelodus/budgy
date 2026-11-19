@@ -18,7 +18,7 @@ use polars::{
 use rfd::FileHandle;
 use thiserror::Error;
 
-use crate::app::Budgy;
+use crate::app::{Budgy, BudgyError};
 
 pub enum BudgyFileType {
     Budget,
@@ -120,21 +120,15 @@ impl Budgy {
         });
     }
 
-    pub fn export_csv(&self) {
+    pub fn export_csv(&self) -> Result<(), BudgyError> {
         let Some(budget_summary_df) = self.budget_summary.clone() else {
-            log::error!("No budget summary available");
-            return;
+            Err(BudgyError::MissingFrame("Summary".to_owned()))?
         };
 
-        let Some(mut summary) = budget_summary_df
+        let mut summary = budget_summary_df
             .lazy()
             .select([col("Category"), col("Balance")])
-            .collect()
-            .ok()
-        else {
-            log::error!("Failed to serialize CSV file");
-            return;
-        };
+            .collect()?;
 
         execute(async move {
             if let Some(file) = rfd::AsyncFileDialog::new()
@@ -148,5 +142,7 @@ impl Budgy {
                     .expect("Failed to save file");
             }
         });
+
+        Ok(())
     }
 }
