@@ -26,18 +26,18 @@ pub trait DataFrameUi {
 impl DataFrameUi for egui::Ui {
     fn display_dataframe(&mut self, df: &polars::frame::DataFrame) {
         let height = df.height();
-        let column_names = df.get_column_names();
+        let columns = df.get_columns();
 
         egui::ScrollArea::horizontal().show(self, |ui| {
             egui_extras::TableBuilder::new(ui)
                 .striped(true)
                 .resizable(true)
                 .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                .columns(egui_extras::Column::auto(), column_names.len())
+                .columns(egui_extras::Column::auto(), columns.len())
                 .header(20.0, |mut header| {
-                    for name in &column_names {
+                    for col in columns {
                         header.col(|ui| {
-                            ui.strong(name.to_string());
+                            ui.strong(col.name().as_str());
                         });
                     }
                 })
@@ -45,14 +45,12 @@ impl DataFrameUi for egui::Ui {
                     body.rows(22.0, height, |mut row| {
                         let row_idx = row.index();
 
-                        for column_name in &column_names {
+                        for column in columns {
                             row.col(|ui| {
-                                if let Ok(column) = df.column(column_name) {
-                                    let value = column
-                                        .get(row_idx)
-                                        .unwrap_or(polars::datatypes::AnyValue::Null);
-                                    ui.label(format!("{value}"));
-                                }
+                                let value = column
+                                    .get(row_idx)
+                                    .unwrap_or(polars::datatypes::AnyValue::Null);
+                                ui.label(value.to_string());
                             });
                         }
                     });
