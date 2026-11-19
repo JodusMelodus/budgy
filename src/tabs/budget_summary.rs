@@ -1,7 +1,4 @@
-use polars::{
-    chunked_array::ops::SortMultipleOptions, datatypes::DataType, lazy::dsl::col,
-    prelude::Literal as _,
-};
+use polars::{chunked_array::ops::SortMultipleOptions, datatypes::DataType, lazy::dsl::col};
 
 use crate::{
     app::{Budgy, BudgyError},
@@ -19,11 +16,9 @@ impl Budgy {
                 .clone()
                 .ok_or_else(|| BudgyError::MissingFrame("Statement".to_owned()))?;
             statement = statement.with_columns([
-                col("Money In").cast(DataType::Float64).fill_null(0.0.lit()),
-                col("Money Out")
-                    .cast(DataType::Float64)
-                    .fill_null(0.0.lit()),
-                col("Fee").cast(DataType::Float64).fill_null(0.0.lit()),
+                col("Money In").cast(DataType::Float64).fill_null(0),
+                col("Money Out").cast(DataType::Float64).fill_null(0),
+                col("Fee").cast(DataType::Float64).fill_null(0),
             ]);
 
             let budget = self
@@ -38,10 +33,11 @@ impl Budgy {
             ]);
 
             let mut result = statement.left_join(budget, col("Category"), col("Category"));
+            result = result.with_column(col("Budget Amount").cast(DataType::Float64).fill_null(0));
             result = result.sort(["Category"], SortMultipleOptions::default());
 
             result = result.with_column(
-                (col("Money In") + col("Money Out") + col("Fee") - col("Budget Amount"))
+                (col("Money In") - col("Money Out") + col("Fee") - col("Budget Amount"))
                     .alias("Balance"),
             );
 
