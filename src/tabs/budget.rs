@@ -1,7 +1,8 @@
+use polars::{frame::DataFrame, prelude::NamedFrom as _, series::Series};
+
 use crate::{
     app::{Budgy, BudgyError},
     extra_ui::DataFrameUi as _,
-    file::BudgyFileType,
 };
 
 impl Budgy {
@@ -13,8 +14,14 @@ impl Budgy {
             ui.display_dataframe(df);
         } else if let Some(lf) = self.budget_lf.clone() {
             self.budget_df = Some(lf.collect()?);
-        } else if ui.button("Import Budget").clicked() {
-            self.open_csv_file(BudgyFileType::Budget);
+        } else {
+            let categories = &self.budget.categories;
+            let amounts = &self.budget.amounts;
+
+            self.budget_df = Some(DataFrame::new(vec![
+                Series::new("Category".into(), categories).into(),
+                Series::new("Budget Amount".into(), amounts).into(),
+            ])?);
         }
 
         Ok(())

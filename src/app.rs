@@ -21,34 +21,34 @@ pub enum BudgyError {
     MissingFrame(String),
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Default)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, Default)]
 pub struct Budget {
-    categories: Vec<String>,
-    amounts: Vec<f64>,
+    pub categories: Vec<String>,
+    pub amounts: Vec<f64>,
 }
 
 pub struct Budgy {
-    pub(crate) budget_summary: Option<DataFrame>,
+    pub budget_summary: Option<DataFrame>,
 
-    pub(crate) budget_df: Option<DataFrame>,
-    pub(crate) budget_lf: Option<LazyFrame>,
+    pub budget_df: Option<DataFrame>,
+    pub budget_lf: Option<LazyFrame>,
 
-    pub(crate) statement_df: Option<DataFrame>,
-    pub(crate) statement_lf: Option<LazyFrame>,
+    pub statement_df: Option<DataFrame>,
+    pub statement_lf: Option<LazyFrame>,
 
-    pub(crate) previous_summary_lf: Option<LazyFrame>,
+    pub previous_summary_lf: Option<LazyFrame>,
 
-    pub(crate) current_tab: Tabs,
+    pub current_tab: Tabs,
 
     // File picking
-    pub(crate) tx: Sender<ImportFile>,
+    pub tx: Sender<ImportFile>,
     rx: Receiver<ImportFile>,
 
-    budget: Budget,
-    error: Option<String>,
+    pub budget: Budget,
+    pub error: Option<String>,
 
-    pub(crate) nav_collapsed: bool,
-    pub(crate) theme: Theme,
+    pub nav_collapsed: bool,
+    pub theme: Theme,
 }
 
 impl Budgy {
@@ -109,6 +109,7 @@ impl eframe::App for Budgy {
             self.budget.amounts = budget_amount;
 
             eframe::set_value(storage, "budget", &self.budget);
+            log::info!("Saved successfully!");
         }
     }
 
