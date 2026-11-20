@@ -1,4 +1,6 @@
-use polars::{frame::DataFrame, prelude::NamedFrom as _, series::Series};
+use polars::{
+    frame::DataFrame, lazy::frame::IntoLazy as _, prelude::NamedFrom as _, series::Series,
+};
 
 use crate::{
     app::{Budgy, BudgyError},
@@ -18,10 +20,12 @@ impl Budgy {
             let categories = &self.budget.categories;
             let amounts = &self.budget.amounts;
 
-            self.budget_df = Some(DataFrame::new(vec![
+            let df = DataFrame::new(vec![
                 Series::new("Category".into(), categories).into(),
                 Series::new("Budget Amount".into(), amounts).into(),
-            ])?);
+            ])?;
+            self.budget_df = Some(df.clone());
+            self.budget_lf = Some(df.lazy());
         }
 
         Ok(())

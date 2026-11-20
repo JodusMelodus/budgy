@@ -39,7 +39,7 @@ impl Budgy {
                 result = result.sort(["Category"], SortMultipleOptions::default());
 
                 result = result.with_column(
-                    (col("Money In") + col("Money Out") + col("Fee") + col("Budget Amount"))
+                    (col("Money In") + col("Money Out") + col("Fee") - col("Budget Amount"))
                         .alias("Balance"),
                 );
 
