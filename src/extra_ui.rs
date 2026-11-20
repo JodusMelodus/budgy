@@ -1,4 +1,5 @@
 use egui::{KeyboardShortcut, Ui};
+use polars::datatypes::AnyValue;
 
 pub trait ShortcutUi {
     fn button_with_shortcut(
@@ -29,6 +30,8 @@ impl DataFrameUi for egui::Ui {
         let columns = df.get_columns();
 
         egui::ScrollArea::horizontal().show(self, |ui| {
+            ui.spacing_mut().item_spacing = egui::vec2(16.0, 8.0);
+
             egui_extras::TableBuilder::new(ui)
                 .striped(true)
                 .resizable(true)
@@ -47,10 +50,8 @@ impl DataFrameUi for egui::Ui {
 
                         for column in columns {
                             row.col(|ui| {
-                                let value = column
-                                    .get(row_idx)
-                                    .unwrap_or(polars::datatypes::AnyValue::Null);
-                                ui.label(value.to_string());
+                                let value = column.get(row_idx).unwrap_or(AnyValue::Null);
+                                ui.label(value.str_value());
                             });
                         }
                     });
