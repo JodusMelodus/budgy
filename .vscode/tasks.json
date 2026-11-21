@@ -2,16 +2,16 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"type": "cargo",
-			"command": "run",
+			"type": "shell",
+			"command": "cargo fmt --all & cargo run",
 			"problemMatcher": [
 				"$rustc"
 			],
 			"label": "Budgy: cargo run"
 		},
 		{
-			"type": "cargo",
-			"command": "build",
+			"type": "shell",
+			"command": "cargo fmt --all & cargo build",
 			"problemMatcher": [
 				"$rustc"
 			],
@@ -31,7 +31,7 @@
 		},
 		{
 			"type": "shell",
-			"command": "cargo packager --release",
+			"command": "cargo fmt --all & packager --release",
 			"problemMatcher": [],
 			"label": "Budgy: Build Installer"
 		}
